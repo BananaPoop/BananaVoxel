@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:co.v2="urn:schemas-microsoft-com:clickonce.v2">
+  <asmv1:assemblyIdentity name="GlPipeline.exe" version="1.0.0.4" publicKeyToken="0da8787dfd4c35b8" language="neutral" processorArchitecture="msil" type="win32" />
+  <application />
+  <entryPoint>
+    <assemblyIdentity name="GlPipeline" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
+    <commandLine file="GlPipeline.exe" parameters="" />
+  </entryPoint>
+  <trustInfo>
+    <security>
+      <applicationRequestMinimum>
+        <PermissionSet Unrestricted="true" ID="Custom" SameSite="site" />
+        <defaultAssemblyRequest permissionSetReference="Custom" />
+      </applicationRequestMinimum>
+      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
+        <!--
+          UAC Manifest Options
+          If you want to change the Windows User Account Control level replace the 
+          requestedExecutionLevel node with one of the following.
+
+        <requestedExecutionLevel  level="asInvoker" uiAccess="false" />
+        <requestedExecutionLevel  level="requireAdministrator" uiAccess="false" />
+        <requestedExecutionLevel  level="highestAvailable" uiAccess="false" />
+
+         If you want to utilize File and Registry Virtualization for backward 
+         compatibility then delete the requestedExecutionLevel node.
+    -->
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+  <dependency>
+    <dependentOS>
+      <osVersionInfo>
+        <os majorVersion="5" minorVersion="1" buildNumber="2600" servicePackMajor="0" />
+      </osVersionInfo>
+    </dependentOS>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="preRequisite" allowDelayedBinding="true">
+      <assemblyIdentity name="Microsoft.Windows.CommonLanguageRuntime" version="4.0.30319.0" />
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="GlPipeline.exe" size="55280">
+      <assemblyIdentity name="GlPipeline" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>GPfohkOfDvoO8H2rSSBc0XDtgh0RNuRAiest1SgjQZo=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="OpenTK.dll" size="4004352">
+      <assemblyIdentity name="OpenTK" version="1.1.0.0" publicKeyToken="BAD199FE84EB3DF4" language="neutral" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>/Xy1/AFqFcYZr+XREbfTskOrohDDK+J56AtyqjKQqKo=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <file name="GlPipeline.exe.config" size="187">
+    <hash>
+      <dsig:Transforms>
+        <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+      </dsig:Transforms>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+      <dsig:DigestValue>xm4bo26HQ0LNVwz1vdPYtzhkpMnp2AI5i+f0b+OahTI=</dsig:DigestValue>
+    </hash>
+  </file>
+<publisherIdentity name="CN=BANANAPOOP\Tyler Strahan" issuerKeyHash="cb79b411b132db3494558d5df76ff6ff48438703" /><Signature Id="StrongNameSignature" xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha256" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /><Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" /><DigestValue>wJD924xbxyQ1yAG23L2cbu9ZWBxr5yJeOadzNtGrXeA=</DigestValue></Reference></SignedInfo><SignatureValue>cdhQQMGfFXmMKVugCXy+8cjKc9xAHjzW7olZliu+h+6CWTj6bryQhCro/5kWI94ZQydtIyXU54kfBMDHhngiV1wxiKVe52CXFKKvr4dgfzCpz5Z9vCT+XvN4U9uafUrzhU4iKy2TzsYcZ+QBWxHvbqLdjlg+582cdE4jKXW/CmQ=</SignatureValue><KeyInfo Id="StrongNameKeyInfo"><KeyValue><RSAKeyValue><Modulus>6JgMK6oyZuMflwFqAQS1+5b/Vbj4HvVgJxDws3t20oC9/zWYMZ7ORH1NDpOzdye84bCvwUsuNeU9uO8/QR4XKUkE2NBpfTdaPSs/HpyNI601eG+Bxi0M11/tEp+ljmhqMVtE4ybPmApfeo1jH3gdZus995h/oXQ2fBgqlI7/Gj8=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue></KeyValue><msrel:RelData xmlns:msrel="http://schemas.microsoft.com/windows/rel/2005/reldata"><r:license xmlns:r="urn:mpeg:mpeg21:2003:01-REL-R-NS" xmlns:as="http://schemas.microsoft.com/windows/pki/2005/Authenticode"><r:grant><as:ManifestInformation Hash="e05dabd13673a7395e22e76b1c5859ef6e9cbddcb601c83524c75b8cdbfd90c0" Description="" Url=""><as:assemblyIdentity name="GlPipeline.exe" version="1.0.0.4" publicKeyToken="0da8787dfd4c35b8" language="neutral" processorArchitecture="msil" type="win32" /></as:ManifestInformation><as:SignedBy /><as:AuthenticodePublisher><as:X509SubjectName>CN=BANANAPOOP\Tyler Strahan</as:X509SubjectName></as:AuthenticodePublisher></r:grant><r:issuer><Signature Id="AuthenticodeSignature" xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha256" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /><Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" /><DigestValue>rZRiS7mCMFulUEZUT7MaM7/af+mSJfeIx4QZjaPz88s=</DigestValue></Reference></SignedInfo><SignatureValue>po8kqkOXyOHVtTbmKV2zXwPo3B7xqwhA+CZquU3CvXBjUN8guLtD1y7F1v6DVEohROh+yqHd3EvXKeb58erRyscGbzLTdkJzGKD3KbakZCmNavnGB69wCEtfAwFtEzo6nNZVNil/xKIwbn4dlMXkTfge21GR4BBRktmkjCBg8bM=</SignatureValue><KeyInfo><KeyValue><RSAKeyValue><Modulus>6JgMK6oyZuMflwFqAQS1+5b/Vbj4HvVgJxDws3t20oC9/zWYMZ7ORH1NDpOzdye84bCvwUsuNeU9uO8/QR4XKUkE2NBpfTdaPSs/HpyNI601eG+Bxi0M11/tEp+ljmhqMVtE4ybPmApfeo1jH3gdZus995h/oXQ2fBgqlI7/Gj8=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue></KeyValue><X509Data><X509Certificate>MIIB+TCCAWKgAwIBAgIQXS6YgMqgMaFA4hnttVqkqDANBgkqhkiG9w0BAQsFADA7MTkwNwYDVQQDHjAAQgBBAE4AQQBOAEEAUABPAE8AUABcAFQAeQBsAGUAcgAgAFMAdAByAGEAaABhAG4wHhcNMTUxMTI3MTMwMjI4WhcNMTYxMTI2MTkwMjI4WjA7MTkwNwYDVQQDHjAAQgBBAE4AQQBOAEEAUABPAE8AUABcAFQAeQBsAGUAcgAgAFMAdAByAGEAaABhAG4wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAOiYDCuqMmbjH5cBagEEtfuW/1W4+B71YCcQ8LN7dtKAvf81mDGezkR9TQ6Ts3cnvOGwr8FLLjXlPbjvP0EeFylJBNjQaX03Wj0rPx6cjSOtNXhvgcYtDNdf7RKfpY5oajFbROMmz5gKX3qNYx94HWbrPfeYf6F0NnwYKpSO/xo/AgMBAAEwDQYJKoZIhvcNAQELBQADgYEAXmC+gyn4IK+aWPIGPgXY1YsDpF/DJZBFkTZsJj2b24sc7RPYOuNVUeDsbA29/2oTUwi/sdAyOvw4rtAveVsenBKFaCNpKYkU5JmM9i6TJwD7tXXvRebH50owDbisvUWuBPUs80EqeKdyzYdH8JhFQZFE0PYIziECStCmbNFphbw=</X509Certificate></X509Data></KeyInfo></Signature></r:issuer></r:license></msrel:RelData></KeyInfo></Signature></asmv1:assembly>
