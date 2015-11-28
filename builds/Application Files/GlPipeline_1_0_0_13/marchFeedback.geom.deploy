@@ -1,0 +1,305 @@
+﻿#version 400
+
+#extension GL_EXT_gpu_shader4 : enable 
+
+layout(points, invocations = 1) in;
+layout(triangle_strip, max_vertices = 16) out;
+uniform mat4 modelview;
+uniform isampler2D edgeTableTex;
+uniform isampler2D triTableTex;
+uniform float isolevel;
+uniform float scale;
+uniform vec3 cameraPos;
+in vec3 vColor[];
+in float vSides[];
+out vec3 fColor;
+out float dist;
+
+const float PI = 3.1415926;
+
+vec3 mod289(vec3 x) {
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec4 mod289(vec4 x) {
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec4 permute(vec4 x) {
+     return mod289(((x*34.0)+1.0)*x);
+}
+
+vec4 taylorInvSqrt(vec4 r)
+{
+  return 1.79284291400159 - 0.85373472095314 * r;
+}
+
+float snoise(vec3 v)
+  { 
+  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+
+// First corner
+  vec3 i  = floor(v + dot(v, C.yyy) );
+  vec3 x0 =   v - i + dot(i, C.xxx) ;
+
+// Other corners
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min( g.xyz, l.zxy );
+  vec3 i2 = max( g.xyz, l.zxy );
+
+  //   x0 = x0 - 0.0 + 0.0 * C.xxx;
+  //   x1 = x0 - i1  + 1.0 * C.xxx;
+  //   x2 = x0 - i2  + 2.0 * C.xxx;
+  //   x3 = x0 - 1.0 + 3.0 * C.xxx;
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y
+  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y
+
+// Permutations
+  i = mod289(i); 
+  vec4 p = permute( permute( permute( 
+             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
+           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+
+// Gradients: 7x7 points over a square, mapped onto an octahedron.
+// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)
+  float n_ = 0.142857142857; // 1.0/7.0
+  vec3  ns = n_ * D.wyz - D.xzx;
+
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)
+
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
+
+  vec4 x = x_ *ns.x + ns.yyyy;
+  vec4 y = y_ *ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+
+  vec4 b0 = vec4( x.xy, y.xy );
+  vec4 b1 = vec4( x.zw, y.zw );
+
+  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;
+  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;
+  vec4 s0 = floor(b0)*2.0 + 1.0;
+  vec4 s1 = floor(b1)*2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+
+  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+
+  vec3 p0 = vec3(a0.xy,h.x);
+  vec3 p1 = vec3(a0.zw,h.y);
+  vec3 p2 = vec3(a1.xy,h.z);
+  vec3 p3 = vec3(a1.zw,h.w);
+
+//Normalise gradients
+  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+  p0 *= norm.x;
+  p1 *= norm.y;
+  p2 *= norm.z;
+  p3 *= norm.w;
+
+// Mix final noise value
+  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), 
+                                dot(p2,x2), dot(p3,x3) ) );
+  }
+
+vec4 sampleFunction( vec3 p ) {
+    return vec4(
+        16.0*p.y*p.z +
+        4.0*2.0*p.x,
+        16.0*p.x*p.z +
+        4.0*2.0*p.y,
+        16.0*p.x*p.y +
+        4.0*2.0*p.z,
+        16.0*p.x*p.y*p.z +
+        4.0*p.x*p.x +
+        4.0*p.y*p.y +
+        4.0*p.z*p.z - 1.0
+        );
+}
+
+
+
+
+//Compute interpolated vertex along an edge 
+vec3 vertexInterp(float isolevel, vec3 v0, float l0, vec3 v1, float l1) {
+    return mix(v0, v1, (isolevel-l0)/(l1-l0));
+}
+ 
+
+//Get triangle table value 
+int triTableValue(int i, int j){
+    return texelFetch2D(triTableTex, ivec2(j, i), 0).x;
+}
+
+float density(vec3 point) {
+	float dens = point.y-5;
+	return snoise(point/scale);
+} 
+
+void main() {
+    //Currently meaningless
+	if(true) {
+        
+        //TODO Make uniform
+		vec3 vertDecals[8];
+        vertDecals[0] = vec3(0,0,0);
+        vertDecals[1] = vec3(1,0,0);
+        vertDecals[2] = vec3(1,1,0);
+        vertDecals[3] = vec3(0,1,0);
+        vertDecals[4] = vec3(0,0,1);
+        vertDecals[5] = vec3(1,0,1);
+        vertDecals[6] = vec3(1,1,1);
+        vertDecals[7] = vec3(0,1,1);
+        float cubeVal[8];
+        for(int i =0;i<8;i++) {
+            cubeVal[i] = density(vertDecals[i]+gl_in[0].gl_Position.xyz);
+        }
+
+
+		//float isolevel = 0.3;
+        int cubeindex = int(cubeVal[0]<isolevel);
+        cubeindex += int(cubeVal[1]<isolevel)*2;
+        cubeindex += int(cubeVal[2]<isolevel)*4;
+        cubeindex += int(cubeVal[3]<isolevel)*8;
+        cubeindex += int(cubeVal[4]<isolevel)*16;
+        cubeindex += int(cubeVal[5]<isolevel)*32;
+        cubeindex += int(cubeVal[6]<isolevel)*64;
+        cubeindex += int(cubeVal[7]<isolevel)*128;
+        //Cube makes up no part of surface
+		if(cubeindex == 0 || cubeindex == 255)
+			return;
+        vec3 cubePos[8];
+        for(int i = 0;i<8;i++) {
+            cubePos[i] = gl_in[0].gl_Position.xyz + vertDecals[i];
+        }
+
+		
+		vec3 vertlist[12];
+        //Find the vertcices where the surface intersects the cube
+		vertlist[0] = vertexInterp(isolevel, cubePos[0], cubeVal[0], cubePos[1], cubeVal[1]);
+        vertlist[1] = vertexInterp(isolevel, cubePos[1], cubeVal[1], cubePos[2], cubeVal[2]);
+        vertlist[2] = vertexInterp(isolevel, cubePos[2], cubeVal[2], cubePos[3], cubeVal[3]);
+        vertlist[3] = vertexInterp(isolevel, cubePos[3], cubeVal[3], cubePos[0], cubeVal[0]);
+        vertlist[4] = vertexInterp(isolevel, cubePos[4], cubeVal[4], cubePos[5], cubeVal[5]);
+        vertlist[5] = vertexInterp(isolevel, cubePos[5], cubeVal[5], cubePos[6], cubeVal[6]);
+        vertlist[6] = vertexInterp(isolevel, cubePos[6], cubeVal[6], cubePos[7], cubeVal[7]);
+        vertlist[7] = vertexInterp(isolevel, cubePos[7], cubeVal[7], cubePos[4], cubeVal[4]);
+        vertlist[8] = vertexInterp(isolevel, cubePos[0], cubeVal[0], cubePos[4], cubeVal[4]);
+        vertlist[9] = vertexInterp(isolevel, cubePos[1], cubeVal[1], cubePos[5], cubeVal[5]);
+        vertlist[10] = vertexInterp(isolevel, cubePos[2], cubeVal[2], cubePos[6], cubeVal[6]);
+        vertlist[11] = vertexInterp(isolevel, cubePos[3], cubeVal[3], cubePos[7], cubeVal[7]);
+        float sdf = vSides[0]/vSides[0];
+        //Stops compiler from optimizing modelview out!!!! ANNOYING!
+		
+		int i = 0;
+        if(vSides[0]==5)
+		{
+            i=1;
+        }
+
+		while(true) {
+            if(triTableValue(cubeindex,i)!=-1) {
+                //Generate first vertex
+				
+				fColor = normalize(vColor[0] + 1*(gl_in[0].gl_Position.xyz+vec3(0,0,0)));
+				vec4 pos1 = vec4(vertlist[triTableValue(cubeindex,i)],1);
+                
+                //Generate secound vertex
+				vec4 pos2 = vec4(vertlist[triTableValue(cubeindex,i+1)],1);
+                
+                //Generate third vertex
+				vec4 pos3 = vec4(vertlist[triTableValue(cubeindex,i+2)],1);
+                
+				fColor = normalize(normalize(cross((pos2-pos1).xyz,(pos3-pos1).xyz).xyz)/2 + vec3(0.5,0.5,0.5)).xyz;
+				fColor += vColor[0]*0.001;
+				
+				
+				gl_Position = modelview * pos1;		
+				dist = length(gl_in[0].gl_Position.xyz -cameraPos);
+				EmitVertex();
+						
+				gl_Position = modelview * pos2;
+				dist = length(gl_in[0].gl_Position.xyz -cameraPos);
+				EmitVertex();
+				
+				gl_Position = modelview * pos3;
+				dist = length(gl_in[0].gl_Position.xyz -cameraPos);
+				EmitVertex();
+
+                //Finish triangle
+				EndPrimitive();
+            }
+			else {
+                break;
+            }
+
+			i = i+3;
+            //Increment the loop
+		}
+
+		/*if(triTableValue(0,0)==-1){
+			gl_Position = modelview * (gl_in[0].gl_Position*sdf);
+			EmitVertex();
+			gl_Position = modelview * (gl_in[0].gl_Position+vec4(0,0,1,0));
+			EmitVertex();
+			gl_Position = modelview * (gl_in[0].gl_Position+vec4(0,1,0,0));
+			EmitVertex();
+			EndPrimitive();
+		}*/
+		//while(true){ 
+		//	if(triTableValue(cubeindex, i)!=-1){ 
+		//		//Generate first vertex of triangle// 
+		//		//Fill position varying attribute for fragment shader 
+		//		position= vec4(vertlist[triTableValue(cubeindex, i)], 1); 
+		//		//Fill gl_Position attribute for vertex raster space position 
+		//		gl_Position = gl_ModelViewProjectionMatrix* position; 
+		//		EmitVertex(); 
+			 
+		//		//Generate second vertex of triangle// 
+		//		//Fill position varying attribute for fragment shader 
+		//		position= vec4(vertlist[triTableValue(cubeindex, i+1)], 1); 
+		//		//Fill gl_Position attribute for vertex raster space position 
+		//		gl_Position = gl_ModelViewProjectionMatrix* position; 
+		//		EmitVertex(); 
+			 
+		//		//Generate last vertex of triangle// 
+		//		//Fill position varying attribute for fragment shader 
+		//		position= vec4(vertlist[triTableValue(cubeindex, i+2)], 1); 
+		//		//Fill gl_Position attribute for vertex raster space position 
+		//		gl_Position = gl_ModelViewProjectionMatrix* position; 
+		//		EmitVertex(); 
+			 
+		//		//End triangle strip at firts triangle 
+		//		EndPrimitive(); 
+		//	}else{ 
+		//		break; 
+		//	} 
+ 
+		//	i=i+3; //Comment it to test the strange bug 
+		//} 
+
+		//for (int i = 0; i <= vSides[0]; i++) {
+		//	gl_Position = modelview * gl_in[0].gl_Position;
+		//	EmitVertex();
+
+		//	// Angle between each side in radians
+		//	float ang = PI * -2.0 / vSides[0] * i;
+		//	// Offset from center of point (0.3 to accomodate for aspect ratio)
+		//	vec4 offset = vec4(cos(ang) * 0.3, -sin(ang) * 0.4, 0.0, 0.0);
+		//	gl_Position = modelview * (gl_in[0].gl_Position + offset);
+		//	EmitVertex();
+		//}
+
+		//EndPrimitive();
+	}
+}
+
+
+
