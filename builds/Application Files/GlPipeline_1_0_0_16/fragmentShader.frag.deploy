@@ -1,0 +1,18 @@
+﻿#version 150
+
+in vec3 fColor;
+in float dist;
+
+out vec4 outColor;
+
+void main()
+{
+	//float density = 0.02;
+	const float maxVisDist = 70;
+	//density = 0;
+	//float fogFactor = 1.0/exp((dist*density)*(dist*density));
+	float fogFactor = 1 - (dist/maxVisDist);
+	fogFactor = clamp(fogFactor,0.0,1.0);
+	outColor =  mix(vec4(0.2,0.2,0.2,1.0),vec4(fColor,1.0),fogFactor);
+	//outColor = vec4(fColor/dist,1.0);
+}

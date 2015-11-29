@@ -1,0 +1,55 @@
+﻿#version 150
+
+uniform vec3 globalShift;
+uniform mat4 modelview;
+
+in vec3 pos;
+in vec3 color;
+in float sides;
+
+out vec3 vColor; // Output to geometry (or fragment) shader
+out float vSides;
+out int isVisible;
+
+bool checkVis(vec3 offset) {
+	vec4 viewPos = modelview * (gl_Position+vec4(offset,0));
+	return (!(any(lessThan(viewPos.xyz, vec3(-viewPos.w))) ||
+    any(greaterThan(viewPos.xyz, vec3(viewPos.w)))));
+}
+
+void main() {
+    gl_Position = vec4(pos+globalShift, 1.0);
+    vColor = color;
+	vSides = sides;
+	vec4 viewPos = gl_Position;
+	
+	const float hg = 2; // Half grid
+	isVisible = 0;
+
+	if(checkVis(vec3(hg,hg,hg)) ||
+	checkVis(vec3(-hg,hg,hg)) ||
+	checkVis(vec3(hg,-hg,hg)) ||
+	checkVis(vec3(-hg,-hg,hg)) ||
+	checkVis(vec3(hg,hg,-hg)) ||
+	checkVis(vec3(-hg,hg,-hg)) ||
+	checkVis(vec3(hg,-hg,-hg)) ||
+	checkVis(vec3(-hg,-hg,-hg))||
+	length(gl_Position.xyz-globalShift)<4) {
+		isVisible = 1;
+	}
+
+	//viewPos = modelview * (gl_Position+vec4(halfGrid,halfGrid,halfGrid,0));
+	//if (!(any(lessThan(viewPos.xyz, vec3(-viewPos.w))) ||
+ //   any(greaterThan(viewPos.xyz, vec3(viewPos.w)))))
+	//{
+	//	isVisible = 1;
+	//}
+
+	//	viewPos = modelview * (gl_Position+vec4(-halfGrid,-halfGrid,halfGrid,0));
+	//if (!(any(lessThan(viewPos.xyz, vec3(-viewPos.w))) ||
+ //   any(greaterThan(viewPos.xyz, vec3(viewPos.w)))))
+	//{
+	//	isVisible = 1;
+	//}
+
+}
